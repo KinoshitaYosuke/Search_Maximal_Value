@@ -7,7 +7,7 @@ using namespace std;
 
 #define YUDO 0.5
 #define IOU_OUTPUT 0.7
-#define DISTANCE 20.0
+#define DISTANCE 200.0
 
 class Place {
 public:
@@ -403,7 +403,7 @@ void Merge() {
 			List_name[i + 1] = '\0';
 		}
 
-		char Result_name[1024] = "c:/photo/result_data_from_demo/2018_01_13_OOP/result_data/";
+		char Result_name[1024] = "c:/photo/result_data_from_demo/2018_01_13_EP/result_data/";
 		strcat_s(Result_name, List_name);
 		//Resultファイル読み込み
 		char Result_n[5][1024];
@@ -414,7 +414,7 @@ void Merge() {
 		}
 
 		//記録用ファイル作成
-		char Save_name[1024] = "c:/photo/result_data_from_demo/2018_01_13_OOP/save_data/0.5_20/";
+		char Save_name[1024] = "c:/photo/result_data_from_demo/2018_01_13_EP/save_data/0.5_200/";
 		strcat_s(Save_name, List_name);
 		//Resultファイル読み込み
 		char Save_n[1024];
@@ -654,7 +654,7 @@ void Merge_2() {
 
 
 int main(int argc, char** argv) {
-	Merge_2();
+	Merge();
 	
 
 	return 0;
