@@ -7,7 +7,7 @@ using namespace std;
 
 #define YUDO 0.5
 #define IOU_OUTPUT 0.7
-#define DISTANCE 200.0
+#define DISTANCE 10.0
 
 class Place {
 public:
@@ -414,7 +414,7 @@ void Merge() {
 		}
 
 		//記録用ファイル作成
-		char Save_name[1024] = "c:/photo/result_data_from_demo/2018_01_13_EP/save_data/0.5_200/";
+		char Save_name[1024] = "c:/photo/result_data_from_demo/2018_01_13_EP/save_data/0.5_IoU0.3/";
 		strcat_s(Save_name, List_name);
 		//Resultファイル読み込み
 		char Save_n[1024];
@@ -475,15 +475,36 @@ void Merge() {
 
 			place_Result[num].teri_num = territory_num;
 			territory_num++;
+			//IoUから領域統合を行う場合，ここの処理を変える-----------------------------------------------------------------------------------------------
+		//	for (int i = 0; i < num_R; i++) {
+		//		if (place_Result[i].teri_num == -1 &&
+		//			abs((place_Result[i].x + (float)place_Result[i].width / 2) - (place_Result[num].x + (float)place_Result[num].width / 2)) <= DISTANCE &&
+		//			abs((place_Result[i].y + (float)place_Result[i].height / 2) - (place_Result[num].y + (float)place_Result[num].height / 2)) <= DISTANCE)
 
-			for (int i = 0; i < num_R; i++) {
-				if (place_Result[i].teri_num == -1 &&
-					abs((place_Result[i].x + (float)place_Result[i].width / 2) - (place_Result[num].x + (float)place_Result[num].width / 2)) <= DISTANCE &&
-					abs((place_Result[i].y + (float)place_Result[i].height / 2) - (place_Result[num].y + (float)place_Result[num].height / 2)) <= DISTANCE)
-
-					place_Result[i].teri_num = place_Result[num].teri_num;
+		//			place_Result[i].teri_num = place_Result[num].teri_num;
+		//	}
+			//---------------------------------------------------------------------------------------------------------------------------------------------
+			
+			cv::Mat max_img = cv::Mat::zeros(cv::Size(640, 480), CV_8UC3);
+			for (int n = place_Result[num].y; n < place_Result[num].y + place_Result[num].height; n++) {
+				for (int m = place_Result[num].x; m < place_Result[num].x + place_Result[num].width; m++) {
+					max_img.at<cv::Vec3b>(n, m) = cv::Vec3b(255, 255, 255);
+				}
 			}
 
+			for (int i = 0; i < num_R; i++) {
+				if (place_Result[i].teri_num != -1) continue;
+
+				cv::Mat cur_img = cv::Mat::zeros(cv::Size(640, 480), CV_8UC3);	
+				for (int n = place_Result[i].y; n < place_Result[i].y + place_Result[i].height; n++) {
+					for (int m = place_Result[i].x; m < place_Result[i].x + place_Result[i].width; m++) {
+						cur_img.at<cv::Vec3b>(n, m) = cv::Vec3b(255, 255, 255);
+					}
+				}
+				float ans = evaluation(cur_img, max_img);
+				if (ans >= 0.3) place_Result[i].teri_num = place_Result[num].teri_num;
+			}
+			
 			//検出結果の記録
 			fprintf_s(Save, "%f", place_Result[num].yudo);
 			fprintf_s(Save, "\n");
@@ -533,7 +554,7 @@ void Merge_2() {
 		}
 
 		//記録用ファイル作成
-		char Save_name[1024] = "c:/photo/result_data_from_demo/2018_01_15_AP/save_data/0.5_20/";
+		char Save_name[1024] = "c:/photo/result_data_from_demo/2018_01_15_AP/save_data/0.5_IoU0.3/";
 		strcat_s(Save_name, List_name);
 		//Resultファイル読み込み
 		char Save_n[1024];
@@ -612,12 +633,32 @@ void Merge_2() {
 			place_Result[num].teri_num = territory_num;
 			territory_num++;
 
-			for (int i = 0; i < num_R; i++) {
-				if (place_Result[i].teri_num == -1 &&
-					abs((place_Result[i].C_x + (float)place_Result[i].C_width / 2) - (place_Result[num].C_x + (float)place_Result[num].C_width / 2)) <= DISTANCE &&
-					abs((place_Result[i].C_y + (float)place_Result[i].C_height / 2) - (place_Result[num].C_y + (float)place_Result[num].C_height / 2)) <= DISTANCE)
+		//	for (int i = 0; i < num_R; i++) {
+		//		if (place_Result[i].teri_num == -1 &&
+		//			abs((place_Result[i].C_x + (float)place_Result[i].C_width / 2) - (place_Result[num].C_x + (float)place_Result[num].C_width / 2)) <= DISTANCE &&
+		//			abs((place_Result[i].C_y + (float)place_Result[i].C_height / 2) - (place_Result[num].C_y + (float)place_Result[num].C_height / 2)) <= DISTANCE)
 
-					place_Result[i].teri_num = place_Result[num].teri_num;
+		//			place_Result[i].teri_num = place_Result[num].teri_num;
+		//	}
+
+			cv::Mat max_img = cv::Mat::zeros(cv::Size(640, 480), CV_8UC3);
+			for (int n = place_Result[num].F_y; n < place_Result[num].F_y + place_Result[num].F_height; n++) {
+				for (int m = place_Result[num].F_x; m < place_Result[num].F_x + place_Result[num].F_width; m++) {
+					max_img.at<cv::Vec3b>(n, m) = cv::Vec3b(255, 255, 255);
+				}
+			}
+
+			for (int i = 0; i < num_R; i++) {
+				if (place_Result[i].teri_num != -1) continue;
+
+				cv::Mat cur_img = cv::Mat::zeros(cv::Size(640, 480), CV_8UC3);
+				for (int n = place_Result[i].F_y; n < place_Result[i].F_y + place_Result[i].F_height; n++) {
+					for (int m = place_Result[i].F_x; m < place_Result[i].F_x + place_Result[i].F_width; m++) {
+						cur_img.at<cv::Vec3b>(n, m) = cv::Vec3b(255, 255, 255);
+					}
+				}
+				float ans = evaluation(cur_img, max_img);
+				if (ans >= 0.3) place_Result[i].teri_num = place_Result[num].teri_num;
 			}
 
 			//検出結果の記録
@@ -654,7 +695,7 @@ void Merge_2() {
 
 
 int main(int argc, char** argv) {
-	Merge();
+	Merge_2();
 	
 
 	return 0;
