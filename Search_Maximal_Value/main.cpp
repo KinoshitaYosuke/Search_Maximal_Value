@@ -7,7 +7,8 @@ using namespace std;
 
 #define YUDO 0.5
 #define IOU_OUTPUT 0.7
-#define DISTANCE 10.0
+#define DISTANCE 20.0
+#define RESULT_NUM 100
 
 class Place {
 public:
@@ -387,11 +388,12 @@ void Result_MR_and_FPPI(float yudo, float iou_output) {
 	fclose(List);
 }
 
+//一定領域内のうち，最大値をとるものだけ記録する
 void Merge() {
 	//テキストファイルのリスト読み込み
 	char List_n[1024];
 	FILE *List;
-	if (fopen_s(&List, "c:/photo/text_list_4.txt", "r") != 0) {
+	if (fopen_s(&List, "c:/test_text/text_list_all_person.txt", "r") != 0) {
 		cout << "not found List file" << endl;
 		return;
 	}
@@ -403,7 +405,7 @@ void Merge() {
 			List_name[i + 1] = '\0';
 		}
 
-		char Result_name[1024] = "c:/photo/result_data_from_demo/2018_01_13_EP/result_data/";
+		char Result_name[1024] = "c:/result_data/result_text_faster-rcnn/origin_text_data/";
 		strcat_s(Result_name, List_name);
 		//Resultファイル読み込み
 		char Result_n[5][1024];
@@ -414,7 +416,7 @@ void Merge() {
 		}
 
 		//記録用ファイル作成
-		char Save_name[1024] = "c:/photo/result_data_from_demo/2018_01_13_EP/save_data/0.5_IoU0.3/";
+		char Save_name[1024] = "c:/result_data/result_text_faster-rcnn/merged_text_data/distance_100/";
 		strcat_s(Save_name, List_name);
 		//Resultファイル読み込み
 		char Save_n[1024];
@@ -426,7 +428,7 @@ void Merge() {
 
 		cout << List_name << endl;
 
-		Place place_Result[2000];
+		Place place_Result[RESULT_NUM];
 		int num_R = 0;
 		//検出結果の読み込み
 		while (fgets(Result_n[0], 256, Result) != NULL) {	//すべて読み込み，変数に格納
@@ -476,15 +478,15 @@ void Merge() {
 			place_Result[num].teri_num = territory_num;
 			territory_num++;
 			//IoUから領域統合を行う場合，ここの処理を変える-----------------------------------------------------------------------------------------------
-		//	for (int i = 0; i < num_R; i++) {
-		//		if (place_Result[i].teri_num == -1 &&
-		//			abs((place_Result[i].x + (float)place_Result[i].width / 2) - (place_Result[num].x + (float)place_Result[num].width / 2)) <= DISTANCE &&
-		//			abs((place_Result[i].y + (float)place_Result[i].height / 2) - (place_Result[num].y + (float)place_Result[num].height / 2)) <= DISTANCE)
+			for (int i = 0; i < num_R; i++) {
+				if (place_Result[i].teri_num == -1 &&
+					abs((place_Result[i].x + (float)place_Result[i].width / 2) - (place_Result[num].x + (float)place_Result[num].width / 2)) <= DISTANCE &&
+					abs((place_Result[i].y + (float)place_Result[i].height / 2) - (place_Result[num].y + (float)place_Result[num].height / 2)) <= DISTANCE)
 
-		//			place_Result[i].teri_num = place_Result[num].teri_num;
-		//	}
+					place_Result[i].teri_num = place_Result[num].teri_num;
+			}
 			//---------------------------------------------------------------------------------------------------------------------------------------------
-			
+			/*
 			cv::Mat max_img = cv::Mat::zeros(cv::Size(640, 480), CV_8UC3);
 			for (int n = place_Result[num].y; n < place_Result[num].y + place_Result[num].height; n++) {
 				for (int m = place_Result[num].x; m < place_Result[num].x + place_Result[num].width; m++) {
@@ -504,7 +506,8 @@ void Merge() {
 				float ans = evaluation(cur_img, max_img);
 				if (ans >= 0.3) place_Result[i].teri_num = place_Result[num].teri_num;
 			}
-			
+			*/
+
 			//検出結果の記録
 			fprintf_s(Save, "%f", place_Result[num].yudo);
 			fprintf_s(Save, "\n");
@@ -695,7 +698,7 @@ void Merge_2() {
 
 
 int main(int argc, char** argv) {
-	Merge_2();
+	Merge();
 	
 
 	return 0;
